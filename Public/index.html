@@ -1,1 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Key Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght=300;400;600&display=swap" rel="stylesheet">
+    <!-- PropellerAds SDK -->
+    <script src="https://cdn.propellerads.com/publisher.js" async></script>
+</head>
+<body>
+    <!-- Hamburger Menu -->
+    <nav class="navbar">
+        <div class="hamburger">
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="getkey.html">Get Key</a></li>
+        </ul>
+    </nav>
 
+    <!-- Main Content -->
+    <main>
+        <section class="hero">
+            <h1>AI Key Generator</h1>
+            <p>Welcome to our platform, where you can access AI-powered video generation using a secure key system.</p>
+            <p>To begin, users must first obtain a <strong>Generate Key</strong> through the “Get Key” page. Keys are provided as rewards after watching advertisements.</p>
+            <p>Once you have obtained your key, you can use it in our official <a href="https://discord.gg/hWswsZwgkF" target="_blank">Discord server</a> to unlock access to various AI tools.</p>
+        </section>
+
+        <section class="how-it-works">
+            <h2>How It Works</h2>
+            <ol>
+                <li>Get your key from the <a href="getkey.html">Get Key</a> page</li>
+                <li>Watch the required ads</li>
+                <li>Receive a unique key</li>
+                <li>Enter your key in Discord to access AI tools</li>
+            </ol>
+            <div class="notes">
+                <p><strong>Notes:</strong></p>
+                <ul>
+                    <li>Keys are one-time use</li>
+                    <li>Key validity depends on the card selected (10 min, 30 min, 1 hr)</li>
+                    <li>All usage is subject to the terms on this website or Discord</li>
+                </ul>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-links">
+            <a href="about.html" target="_blank">About</a>
+            <a href="privacy.html" target="_blank">Privacy Policy</a>
+            <a href="mailto:support@yourwebsite.com" target="_blank">Contact</a>
+        </div>
+        <p>&copy; 2026 AI Key Generator. All rights reserved.</p>
+    </footer>
+
+    <!-- Popup Modal for Key -->
+    <div id="keyModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Your Key is Ready!</h2>
+            <div id="generatedKey" class="key-display"></div>
+            <button id="copyKey" class="copy-btn">Copy Key</button>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
