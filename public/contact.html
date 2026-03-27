@@ -47,22 +47,32 @@
         <p>&copy; 2026 Halurea Key System. All rights reserved.</p>
     </footer>
 
+    <!-- EmailJS Script -->
     <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
     <script>
+        // Initialize EmailJS with your user ID
         emailjs.init("z7ivKsmDeHkrAhUkN");
 
+        // Handle form submission
         document.getElementById("supportForm").addEventListener("submit", function(e) {
             e.preventDefault();
 
-            emailjs.sendForm("service_39jqmhf", "template_k494lak", this)
-                .then(() => {
-                    alert("✅ Message sent!");
-                    this.reset();
-                })
-                .catch((error) => {
-                    alert("❌ Failed to send");
-                    console.error(error);
-                });
+            // Send form data using EmailJS
+            emailjs.sendForm(
+                "service_39jqmhf", // Your EmailJS service ID
+                "template_y3xutk8", // Your EmailJS template ID
+                this
+            )
+            .then(
+                function(response) {
+                    alert("✅ Message sent! We will get back to you soon.");
+                    document.getElementById("supportForm").reset();
+                },
+                function(error) {
+                    alert("❌ Failed to send. Please try again later.");
+                    console.error("EmailJS Error:", error);
+                }
+            );
         });
     </script>
 </body>
