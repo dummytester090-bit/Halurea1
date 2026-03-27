@@ -89,13 +89,12 @@ if (watchAdsBtns) {
         progressBar.style.width = `${(adsWatched / adsRequired) * 100}%`;
 
         if (adsWatched >= adsRequired) {
-          btn.disabled = true; // Disable the button
+          btn.disabled = true;
           try {
             const key = generateKey();
             const expiryTime = Date.now() + validity * 60 * 1000;
             const userId = `user_${Math.random().toString(36).substr(2, 9)}`;
 
-            // Save to Firebase
             await set(ref(db, `keys/${userId}`), {
               key,
               expiry: expiryTime,
@@ -106,16 +105,15 @@ if (watchAdsBtns) {
             blurredKey.style.filter = 'none';
             showKeyModal(key);
 
-            // Reset the counter after key generation
             setTimeout(() => {
               progressText.textContent = `0/${adsRequired}`;
               progressBar.style.width = '0%';
-              btn.disabled = false; // Re-enable the button
+              btn.disabled = false;
             }, 3000);
           } catch (error) {
             alert('Failed to generate key. Please try again.');
             console.error('Error:', error);
-            btn.disabled = false; // Re-enable the button on error
+            btn.disabled = false;
           }
         }
       }
