@@ -117,15 +117,6 @@ document.querySelectorAll('.card').forEach(card => {
     });
 
     reduceTimerBtn.addEventListener('click', () => {
-        // Dynamically load the ad script only when button is clicked
-        const adScript = document.createElement('script');
-        adScript.dataset.zone = '10798290';
-        adScript.src = 'https://nap5k.com/tag.min.js';
-        // Append to body or documentElement (original method used documentElement or body)
-        const target = document.documentElement || document.body;
-        target.appendChild(adScript);
-
-        // Reduce timer by 2 minutes (120 seconds)
         if (timer > 120) timer -= 120;
         else timer = 0;
         clearInterval(interval);
