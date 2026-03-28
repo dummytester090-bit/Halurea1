@@ -1,11 +1,13 @@
 // DOM Elements
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
-const watchAdsBtns = document.querySelectorAll('.watch-ads-btn');
-const modal = document.getElementById('keyModal');
-const closeBtn = document.querySelector('.close');
-const copyKeyBtn = document.getElementById('copyKey');
-const generatedKeyDisplay = document.getElementById('generatedKey');
+
+// Hamburger Menu Toggle
+if (hamburger && navLinks) {
+  hamburger.addEventListener('click', () => {
+    navLinks.classList.toggle('active');
+  });
+}
 
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
@@ -29,29 +31,36 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const analytics = getAnalytics(app);
 
-// Hamburger Menu Toggle
-hamburger.addEventListener('click', () => {
-  navLinks.classList.toggle('active');
-});
+// Modal Elements
+const modal = document.getElementById('keyModal');
+const closeBtn = document.querySelector('.close');
+const copyKeyBtn = document.getElementById('copyKey');
+const generatedKeyDisplay = document.getElementById('generatedKey');
 
 // Show Modal with Key
 function showKeyModal(key) {
-  generatedKeyDisplay.textContent = key;
-  modal.style.display = 'block';
+  if (generatedKeyDisplay) {
+    generatedKeyDisplay.textContent = key;
+    modal.style.display = 'block';
+  }
 }
 
 // Copy Key to Clipboard
-copyKeyBtn?.addEventListener('click', () => {
-  const key = generatedKeyDisplay.textContent;
-  navigator.clipboard.writeText(key).then(() => {
-    alert('Key copied to clipboard!');
+if (copyKeyBtn) {
+  copyKeyBtn.addEventListener('click', () => {
+    const key = generatedKeyDisplay.textContent;
+    navigator.clipboard.writeText(key).then(() => {
+      alert('Key copied to clipboard!');
+    });
   });
-});
+}
 
 // Close Modal
-closeBtn?.addEventListener('click', () => {
-  modal.style.display = 'none';
-});
+if (closeBtn) {
+  closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+}
 
 // Close Modal if clicked outside
 window.addEventListener('click', (e) => {
@@ -71,6 +80,7 @@ function generateKey(length = 10) {
 }
 
 // Watch Ads Button Logic
+const watchAdsBtns = document.querySelectorAll('.watch-ads-btn');
 if (watchAdsBtns) {
   watchAdsBtns.forEach(btn => {
     btn.addEventListener('click', async (e) => {
