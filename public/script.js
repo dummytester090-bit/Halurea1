@@ -79,7 +79,94 @@ function generateKey(length = 10) {
   return key;
 }
 
-// Watch Ads Button Logic
+// Timer Logic (New System)
+document.querySelectorAll('.card').forEach(card => {
+  const timerElement = card.querySelector('.timer');
+  const getKeyBtn = card.querySelector('.get-key-btn');
+  const reduceTimerBtn = card.querySelector('.reduce-timer-btn');
+  const blurredKey = card.querySelector('.blurred-key');
+  const keyType = card.dataset.keyType;
+  let timer = parseInt(card.dataset.timer);
+  let interval;
+  let isTimerRunning = true;
+
+  // Start Timer
+  function startTimer() {
+    let seconds = timer;
+    updateTimerDisplay(seconds);
+
+    interval = setInterval(() => {
+      if (!isTimerRunning) return;
+
+      seconds--;
+      updateTimerDisplay(seconds);
+
+      if (seconds <= 0) {
+        clearInterval(interval);
+        getKeyBtn.disabled = false;
+        getKeyBtn.classList.add('glow');
+        isTimerRunning = false;
+      }
+    }, 1000);
+  }
+
+  // Update Timer Display (e.g., "05:00")
+  function updateTimerDisplay(seconds) {
+    const mins = Math.max(0, Math.floor(seconds / 60));
+    const secs = Math.max(0, seconds % 60);
+    timerElement.textContent = `${mins}:${secs < 10 ? '0' + secs : secs}`;
+  }
+
+  startTimer();
+
+  // Get Key Button Logic
+  getKeyBtn.addEventListener('click', async () => {
+    const key = generateKey();
+    const validity = parseInt(card.dataset.validity);
+    const expiryTime = Date.now() + validity * 60 * 1000;
+    const userId = `user_${Math.random().toString(36).substr(2, 9)}`;
+
+    try {
+      await set(ref(db, `keys/${userId}`), {
+        key,
+        expiry: expiryTime,
+        used: false
+      });
+
+      blurredKey.textContent = key;
+      blurredKey.style.filter = 'none';
+      showKeyModal(key);
+
+      // Reset timer for next key
+      timer = parseInt(card.dataset.timer);
+      clearInterval(interval);
+      isTimerRunning = true;
+      getKeyBtn.disabled = true;
+      getKeyBtn.classList.remove('glow');
+      startTimer();
+    } catch (error) {
+      alert('Failed to generate key. Please try again.');
+      console.error('Error:', error);
+    }
+  });
+
+  // Reduce Timer Button Logic
+  reduceTimerBtn.addEventListener('click', () => {
+    // Reduce timer by 2 minutes (120 seconds)
+    if (timer > 120) {
+      timer -= 120;
+    } else {
+      timer = 0;
+    }
+
+    // Restart timer
+    clearInterval(interval);
+    isTimerRunning = true;
+    startTimer();
+  });
+});
+
+// Watch Ads Button Logic (Original System - Untouched)
 const watchAdsBtns = document.querySelectorAll('.watch-ads-btn');
 if (watchAdsBtns) {
   watchAdsBtns.forEach(btn => {
@@ -131,9 +218,11 @@ if (watchAdsBtns) {
   });
 }
 
-// Initialize Progress for Each Card
+// Initialize Progress for Each Card (Original System - Untouched)
 document.querySelectorAll('.card')?.forEach(card => {
   const progressText = card.querySelector('.progress-text');
   const adsRequired = card.dataset.adsRequired;
-  progressText.textContent = `0/${adsRequired}`;
+  if (progressText) {
+    progressText.textContent = `0/${adsRequired}`;
+  }
 });
