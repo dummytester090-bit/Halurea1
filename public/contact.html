@@ -68,12 +68,22 @@
         const popupMessage = document.getElementById('popupMessage');
         const popupClose = document.querySelector('.custom-popup-close');
 
+        // Function to center popup (optional but ensures perfection)
+        function centerPopup() {
+            if (!popup) return;
+            // The flexbox CSS already centers, but if something breaks, this forces it
+            popup.style.display = 'flex';
+            popup.style.alignItems = 'center';
+            popup.style.justifyContent = 'center';
+        }
+
         // Function to show custom popup
         function showPopup(title, message, isSuccess = true) {
             popupTitle.textContent = title;
             popupMessage.textContent = message;
             popup.classList.add(isSuccess ? 'success' : 'error');
-            popup.style.display = 'block';
+            popup.style.display = 'flex'; // Use flex to ensure centering
+            centerPopup(); // Force centering
         }
 
         // Function to hide popup
