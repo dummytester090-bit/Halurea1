@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contact - Halurea Key System</title>
+    <base href="./">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,11 +15,12 @@
             <div class="line"></div>
         </div>
         <ul class="nav-links">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="getkey.html">Get Key</a></li>
-            <li><a href="about.html">About</a></li>
-            <li><a href="contact.html">Contact</a></li>
-            <li><a href="privacy.html">Privacy</a></li>
+            <li><a href="./index.html">Home</a></li>
+            <li><a href="./getkey.html">Get Key</a></li>
+            <li><a href="./blog.html">Blog</a></li>
+            <li><a href="./about.html">About</a></li>
+            <li><a href="./contact.html">Contact</a></li>
+            <li><a href="./privacy.html">Privacy</a></li>
         </ul>
     </nav>
 
@@ -40,14 +42,14 @@
 
     <footer>
         <div class="footer-links">
-            <a href="about.html">About</a>
-            <a href="privacy.html">Privacy Policy</a>
-            <a href="contact.html">Contact</a>
+            <a href="./about.html">About</a>
+            <a href="./privacy.html">Privacy Policy</a>
+            <a href="./contact.html">Contact</a>
+            <a href="./blog.html">Blog</a>
         </div>
         <p>&copy; 2026 Halurea Key System. All rights reserved.</p>
     </footer>
 
-    <!-- Custom Popup for Messages -->
     <div id="messagePopup" class="custom-popup" style="display: none;">
         <div class="custom-popup-content">
             <span class="custom-popup-close">&times;</span>
@@ -56,72 +58,36 @@
         </div>
     </div>
 
-    <!-- EmailJS Script -->
     <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
     <script>
-        // Initialize EmailJS with your user ID
         emailjs.init("z7ivKsmDeHkrAhUkN");
-
-        // Get popup elements
         const popup = document.getElementById('messagePopup');
         const popupTitle = document.getElementById('popupTitle');
         const popupMessage = document.getElementById('popupMessage');
         const popupClose = document.querySelector('.custom-popup-close');
-
-        // Function to center popup (optional but ensures perfection)
-        function centerPopup() {
-            if (!popup) return;
-            // The flexbox CSS already centers, but if something breaks, this forces it
-            popup.style.display = 'flex';
-            popup.style.alignItems = 'center';
-            popup.style.justifyContent = 'center';
-        }
-
-        // Function to show custom popup
         function showPopup(title, message, isSuccess = true) {
             popupTitle.textContent = title;
             popupMessage.textContent = message;
             popup.classList.add(isSuccess ? 'success' : 'error');
-            popup.style.display = 'flex'; // Use flex to ensure centering
-            centerPopup(); // Force centering
+            popup.style.display = 'flex';
         }
-
-        // Function to hide popup
         function hidePopup() {
             popup.classList.remove('success', 'error');
             popup.style.display = 'none';
         }
-
-        // Close popup when clicking the close button
         popupClose.addEventListener('click', hidePopup);
-
-        // Close popup when clicking outside the content
-        window.addEventListener('click', (e) => {
-            if (e.target === popup) {
-                hidePopup();
-            }
-        });
-
-        // Handle form submission
+        window.addEventListener('click', (e) => { if (e.target === popup) hidePopup(); });
         document.getElementById("supportForm").addEventListener("submit", function(e) {
             e.preventDefault();
-
-            // Send form data using EmailJS
-            emailjs.sendForm(
-                "service_39jqmhf", // Your EmailJS service ID
-                "template_y3xutk8", // Your EmailJS template ID
-                this
-            )
-            .then(
-                function(response) {
+            emailjs.sendForm("service_39jqmhf", "template_y3xutk8", this)
+                .then(() => {
                     showPopup("✅ Success!", "Your message has been sent. We'll get back to you soon.", true);
                     document.getElementById("supportForm").reset();
-                },
-                function(error) {
+                })
+                .catch((error) => {
                     showPopup("❌ Error", "Failed to send message. Please try again later.", false);
-                    console.error("EmailJS Error:", error);
-                }
-            );
+                    console.error(error);
+                });
         });
     </script>
 
