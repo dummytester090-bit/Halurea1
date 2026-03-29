@@ -89,18 +89,78 @@ main {
     margin: 0 auto;
 }
 
-.hero, .what-is, .why-created, .how-to-use, .advantages, .faq, .contact, .about, .privacy {
+.hero, .features, .how-to, .featured-article, .faq-teaser, .contact, .about, .privacy, .blog-posts {
     margin-bottom: 3rem;
 }
 
-.hero h1, .what-is h2, .why-created h2, .how-to-use h2, .advantages h2, .faq h2, .contact h1, .about h1, .privacy h1 {
+.hero h1, .features h2, .how-to h2, .featured-article h2, .faq-teaser h2, .contact h1, .about h1, .privacy h1 {
     text-align: center;
     margin-bottom: 1rem;
 }
 
-.hero p, .what-is p, .why-created p, .how-to-use p, .advantages p, .faq p, .contact p, .about p, .privacy p {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
+.cta-button {
+    display: inline-block;
+    background-color: var(--neon);
+    color: var(--dark);
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+    background-color: var(--secondary);
+}
+
+.feature-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+}
+
+.feature {
+    background-color: var(--darker);
+    border: 1px solid var(--neon);
+    border-radius: 8px;
+    padding: 1.5rem;
+    width: 280px;
+    text-align: center;
+}
+
+.feature h3 {
+    margin-bottom: 0.5rem;
+}
+
+.how-to ol {
+    max-width: 600px;
+    margin: 0 auto;
+    padding-left: 1.5rem;
+}
+
+.how-to li, .how-to p {
+    margin-bottom: 0.5rem;
+}
+
+.faq-teaser p {
+    text-align: center;
+}
+
+.ad-container {
+    margin: 2rem auto;
+    max-width: 728px;
+    text-align: center;
+    min-height: 90px;
+}
+
+.info-note {
+    text-align: center;
+    background-color: var(--darker);
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 2rem;
 }
 
 .discord-link {
@@ -111,21 +171,6 @@ main {
 
 .discord-link:hover {
     text-decoration: underline;
-}
-
-.faq dl {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.faq dt {
-    font-weight: 600;
-    margin-top: 1rem;
-}
-
-.faq dd {
-    margin-left: 1rem;
-    margin-bottom: 1rem;
 }
 
 .contact-form {
@@ -177,11 +222,12 @@ footer {
     display: flex;
     justify-content: center;
     margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
 }
 
 .footer-links a {
     color: var(--light);
-    margin: 0 1rem;
     text-decoration: none;
 }
 
@@ -222,22 +268,6 @@ footer {
     margin-bottom: 1rem;
 }
 
-.progress-container {
-    margin: 1rem 0;
-    height: 10px;
-    background-color: var(--dark);
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-.progress-bar {
-    height: 100%;
-    width: 0%;
-    background-color: var(--neon);
-    transition: width 0.3s ease;
-}
-
-/* Timer Display */
 .timer {
     font-family: 'Orbitron', sans-serif;
     font-size: 1.5rem;
@@ -246,9 +276,7 @@ footer {
     text-shadow: var(--shadow);
 }
 
-/* Buttons for Get Key and Reduce Timer */
-.get-key-btn,
-.reduce-timer-btn {
+.get-key-btn {
     background-color: var(--neon);
     color: var(--dark);
     border: none;
@@ -257,13 +285,11 @@ footer {
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s ease;
-    margin: 0.5rem 0;
     width: 100%;
     font-family: 'Poppins', sans-serif;
 }
 
-.get-key-btn:hover,
-.reduce-timer-btn:hover {
+.get-key-btn:hover {
     background-color: var(--secondary);
 }
 
@@ -277,17 +303,6 @@ footer {
     animation: pulse 1.5s infinite;
 }
 
-.reduce-timer-btn {
-    background-color: rgba(0, 255, 157, 0.3);
-    color: var(--light);
-    border: 1px solid var(--neon);
-}
-
-.reduce-timer-btn:hover {
-    background-color: rgba(0, 255, 157, 0.5);
-}
-
-/* Pulse Animation for Glowing Button */
 @keyframes pulse {
     0% { box-shadow: 0 0 15px var(--neon); }
     50% { box-shadow: 0 0 25px var(--neon); }
@@ -304,7 +319,7 @@ footer {
     filter: blur(3px);
 }
 
-/* Modal for Key */
+/* Modal */
 .modal {
     display: none;
     position: fixed;
@@ -362,63 +377,40 @@ footer {
     background-color: var(--secondary);
 }
 
-/* Custom Popup (Perfectly Centered) */
-.custom-popup {
-    display: none;
-    position: fixed;
-    z-index: 200;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    align-items: center;
-    justify-content: center;
-}
-
-.custom-popup-content {
+/* Blog styling */
+.blog-posts article {
     background-color: var(--darker);
-    padding: 2rem;
-    border: 2px solid var(--neon);
     border-radius: 8px;
-    width: 80%;
-    max-width: 500px;
-    text-align: center;
-    position: relative;
-    box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
 }
 
-.custom-popup-close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--light);
-}
-
-.custom-popup h2 {
-    color: var(--neon);
+.blog-posts h2 {
     margin-bottom: 1rem;
 }
 
-.custom-popup p {
-    color: var(--light);
-    font-size: 1.1rem;
+.blog-posts p, .blog-posts ul {
+    margin-bottom: 1rem;
 }
 
-/* Success popup variant */
-.custom-popup.success .custom-popup-content {
-    border-color: var(--neon);
-    box-shadow: 0 0 20px rgba(0, 255, 157, 0.5);
+.blog-posts ul {
+    padding-left: 1.5rem;
 }
 
-/* Error popup variant */
-.custom-popup.error .custom-popup-content {
-    border-color: #ff4d4d;
-    box-shadow: 0 0 20px rgba(255, 77, 77, 0.5);
-}
-
-.custom-popup.error h2 {
-    color: #ff4d4d;
+/* Responsive */
+@media (min-width: 768px) {
+    .hamburger {
+        display: none;
+    }
+    .nav-links {
+        position: static;
+        display: flex;
+        flex-direction: row;
+        background: transparent;
+        width: auto;
+        gap: 2rem;
+    }
+    .nav-links li {
+        margin: 0;
+    }
 }
