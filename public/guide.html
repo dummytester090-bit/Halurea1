@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Guide – Halurea</title>
+    <base href="./">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2001994870159913" crossorigin="anonymous"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="hamburger"><div class="line"></div><div class="line"></div><div class="line"></div></div>
+        <ul class="nav-links">
+            <li><a href="./index.html">Home</a></li>
+            <li><a href="./getkey.html">Get Key</a></li>
+            <li><a href="./blog.html">Blog</a></li>
+            <li><a href="./how-to-play.html">How to Play</a></li>
+            <li><a href="./tips-and-tricks.html">Tips & Tricks</a></li>
+            <li><a href="./updates.html">Updates</a></li>
+            <li><a href="./guide.html">Guide</a></li>
+            <li><a href="./about.html">About</a></li>
+            <li><a href="./contact.html">Contact</a></li>
+            <li><a href="./privacy.html">Privacy</a></li>
+        </ul>
+    </nav>
+
+    <main>
+        <h1>Complete AI Tool Guide</h1>
+        <div class="content-page">
+            <h2>Text‑to‑Image (Stable Diffusion)</h2>
+            <p>Our text‑to‑image tool is powered by Stable Diffusion 3.5. It generates 1024x1024 images from text prompts. Parameters:</p>
+            <ul>
+                <li><code>prompt</code> – the description (required)</li>
+                <li><code>negative_prompt</code> – what to avoid (e.g., “blurry, ugly”)</li>
+                <li><code>seed</code> – number for reproducible results</li>
+                <li><code>steps</code> – 20–50, more steps = better quality</li>
+                <li><code>cfg_scale</code> – 7–12, how closely to follow the prompt</li>
+            </ul>
+            <p>Example: <code>/imagine prompt: a cyberpunk cat, neon lights, rainy street, 4k --neg blurry, ugly --steps 30 --cfg 9</code></p>
+
+            <h2>Image‑to‑Video (Stable Video Diffusion)</h2>
+            <p>Generates 4‑second MP4 videos from a single image. Additional options:</p>
+            <ul>
+                <li><code>motion_bucket_id</code> – 0–255, controls motion intensity</li>
+                <li><code>decoding_t</code> – 1–8, frames per second</li>
+                <li><code>seed</code> – for consistency</li>
+            </ul>
+            <p>Example: <code>/video image: [upload] prompt: ocean waves --motion 200 --fps 6</code></p>
+
+            <h2>Motion Control (AnimateDiff + ControlNet)</h2>
+            <p>This tool animates images with precise motion control. Use:</p>
+            <ul>
+                <li><code>path</code> – define movement (e.g., “circle”, “left to right”)</li>
+                <li><code>speed</code> – slow, medium, fast</li>
+                <li><code>style</code> – natural, robotic, fluid</li>
+            </ul>
+            <p>Example: <code>/motion image: [upload] path: spiral speed: slow style: fluid</code></p>
+
+            <h2>Getting Help</h2>
+            <p>If you’re stuck, use the <code>/help</code> command in any channel to see available commands. For technical issues, reach out in the <code>#support</code> channel on Discord.</p>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-links">
+            <a href="./about.html">About</a>
+            <a href="./privacy.html">Privacy Policy</a>
+            <a href="./contact.html">Contact</a>
+            <a href="./blog.html">Blog</a>
+            <a href="./how-to-play.html">How to Play</a>
+            <a href="./tips-and-tricks.html">Tips & Tricks</a>
+            <a href="./updates.html">Updates</a>
+            <a href="./guide.html">Guide</a>
+        </div>
+        <p>&copy; 2026 Halurea – Free AI Tools Access. All rights reserved.</p>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+</body>
+</html>
