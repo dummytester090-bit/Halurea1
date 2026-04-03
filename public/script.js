@@ -132,7 +132,7 @@ document.querySelectorAll('.card').forEach(card => {
     startTimer();
 
     // ✅ FIXED: Render backend URL with correct endpoint
-    const functionUrl = 'https://halurea1.onrender.com/generateKey'; 
+    const functionUrl = 'https://halurea1.onrender.com/generatekey'; 
 
     getKeyBtn.addEventListener('click', async () => {
         try {
