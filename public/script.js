@@ -1,3 +1,4 @@
+// public/script.js
 const hamburger = document.querySelector('.hamburger');
 const navLinks = document.querySelector('.nav-links');
 const overlay = document.createElement('div');
@@ -47,8 +48,8 @@ function showKeyModal(key) {
 
 if (copyKeyBtn) {
     copyKeyBtn.addEventListener('click', () => {
-        const key = generatedKeyDisplay.textContent;
-        navigator.clipboard.writeText(key).then(() => alert('Key copied to clipboard!'));
+        navigator.clipboard.writeText(generatedKeyDisplay.textContent)
+            .then(() => alert('Key copied to clipboard!'));
     });
 }
 
@@ -60,6 +61,7 @@ window.addEventListener('click', (e) => {
     if (e.target === modal) modal.style.display = 'none';
 });
 
+// --- Timer & Key Generation ---
 document.querySelectorAll('.card').forEach(card => {
     const timerElement = card.querySelector('.timer');
     const getKeyBtn = card.querySelector('.get-key-btn');
@@ -69,48 +71,36 @@ document.querySelectorAll('.card').forEach(card => {
     const validityMinutes = parseInt(card.dataset.validity);
     const fullTimerSeconds = parseInt(card.dataset.timer);
     const maxUses = parseInt(card.dataset.uses);
+
     if (isNaN(validityMinutes) || isNaN(fullTimerSeconds) || isNaN(maxUses)) return;
 
-    // State for this card only
     let timer = fullTimerSeconds;
     let interval = null;
     let isTimerRunning = true;
     let canClick = true;
-
     const storageKey = `halurea_timer_end_${keyType}`;
-    let endTime = sessionStorage.getItem(storageKey);
-    let remainingSeconds = null;
 
+    let endTime = sessionStorage.getItem(storageKey);
     if (endTime) {
         endTime = parseInt(endTime);
         const now = Date.now();
         if (endTime > now) {
-            remainingSeconds = Math.floor((endTime - now) / 1000);
-            if (remainingSeconds > 0 && remainingSeconds <= fullTimerSeconds) {
-                timer = remainingSeconds;
-            } else {
-                timer = fullTimerSeconds;
-                sessionStorage.removeItem(storageKey);
-            }
+            const remainingSeconds = Math.floor((endTime - now)/1000);
+            timer = remainingSeconds <= fullTimerSeconds ? remainingSeconds : fullTimerSeconds;
         } else {
             timer = fullTimerSeconds;
-            sessionStorage.removeItem(storageKey);
         }
     }
 
     function updateTimerDisplay(seconds) {
-        const mins = Math.max(0, Math.floor(seconds / 60));
-        const secs = Math.max(0, seconds % 60);
-        timerElement.textContent = `${mins}:${secs < 10 ? '0' + secs : secs}`;
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        timerElement.textContent = `${mins}:${secs < 10 ? '0'+secs : secs}`;
     }
 
     function saveEndTime(secondsRemaining) {
-        if (secondsRemaining <= 0) {
-            sessionStorage.removeItem(storageKey);
-            return;
-        }
-        const newEndTime = Date.now() + (secondsRemaining * 1000);
-        sessionStorage.setItem(storageKey, newEndTime);
+        if (secondsRemaining <= 0) return sessionStorage.removeItem(storageKey);
+        sessionStorage.setItem(storageKey, Date.now() + secondsRemaining*1000);
     }
 
     function enableGetKeyButton() {
@@ -123,9 +113,6 @@ document.querySelectorAll('.card').forEach(card => {
         updateTimerDisplay(timer);
         if (timer <= 0) {
             enableGetKeyButton();
-            clearInterval(interval);
-            isTimerRunning = false;
-            sessionStorage.removeItem(storageKey);
             return;
         }
         reduceBtn.disabled = false;
@@ -138,75 +125,59 @@ document.querySelectorAll('.card').forEach(card => {
                 enableGetKeyButton();
                 isTimerRunning = false;
                 sessionStorage.removeItem(storageKey);
-            } else {
-                saveEndTime(timer);
-            }
+            } else saveEndTime(timer);
         }, 1000);
     }
 
     startTimer();
 
-    // Cloud Function URL – replace with your actual function URL
-    const functionUrl = 'https://halurea1.onrender.com/';
+    const functionUrl = ' https://halurea1.onrender.com'; 
 
     getKeyBtn.addEventListener('click', async () => {
         try {
             getKeyBtn.disabled = true;
             getKeyBtn.textContent = 'Generating...';
 
-            const response = await fetch(functionUrl, {
+            const res = await fetch(functionUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    validityMinutes: validityMinutes,
-                    maxUses: maxUses
-                })
+                body: JSON.stringify({ validityMinutes, maxUses })
             });
 
-            const data = await response.json();
+            const data = await res.json();
 
             if (data.success) {
                 const key = data.key;
                 blurredKey.textContent = key;
                 blurredKey.style.filter = 'none';
                 showKeyModal(key);
-
                 timer = fullTimerSeconds;
                 clearInterval(interval);
-                isTimerRunning = true;
+                startTimer();
                 getKeyBtn.disabled = true;
                 getKeyBtn.textContent = 'Get Key';
                 getKeyBtn.classList.remove('glow');
                 sessionStorage.removeItem(storageKey);
-                startTimer();
-            } else {
-                throw new Error(data.error || 'Failed to generate key');
-            }
-        } catch (error) {
-            console.error('Key generation error:', error);
-            alert('Failed to generate key. Please try again.');
+            } else throw new Error(data.error || 'Failed to generate key');
+        } catch (e) {
+            console.error(e);
+            alert('Failed to generate key. Try again.');
             getKeyBtn.disabled = false;
             getKeyBtn.textContent = 'Get Key';
         }
     });
 
-    // FIXED: Reduce timer by exactly 2 seconds, never increase
     reduceBtn.addEventListener('click', () => {
         if (!canClick || timer <= 0) return;
-
-        // Subtract 2 seconds, but never below 0
         timer = Math.max(0, timer - 2);
         updateTimerDisplay(timer);
 
         if (timer <= 0) {
             clearInterval(interval);
             enableGetKeyButton();
-            isTimerRunning = false;
-            sessionStorage.removeItem(storageKey);
             return;
         }
 
-        // Cooldown: disable button for 1 second
         canClick = false;
         reduceBtn.disabled = true;
         clearInterval(interval);
