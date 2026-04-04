@@ -12,10 +12,7 @@ let serviceAccount;
 
 try {
   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-
-  // 🔥 CRITICAL FIX: convert \n → real new lines
   serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-
 } catch (err) {
   console.error("🔥 ENV ERROR:", err);
   process.exit(1);
@@ -47,8 +44,8 @@ app.post('/generatekey', async (req, res) => {
   const expiry = Date.now() + validityMinutes * 60 * 1000;
 
   try {
-    const ref = db.ref('keys').push();
-    await ref.set({
+    const ref = db.ref('keys');
+    await ref.push().set({
       key,
       expiry,
       maxUses,
@@ -57,7 +54,6 @@ app.post('/generatekey', async (req, res) => {
     });
 
     res.json({ success: true, key });
-
   } catch (err) {
     console.error("DB ERROR:", err);
     res.json({ success: false, error: 'Database error' });
@@ -105,7 +101,6 @@ app.post('/usekey', async (req, res) => {
     if (found.used + 1 >= found.maxUses) {
       await refKey.remove();
     }
-
   } catch (err) {
     console.error("Server error:", err);
     res.json({ success: false, error: 'Server error' });
