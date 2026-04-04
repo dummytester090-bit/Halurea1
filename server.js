@@ -23,7 +23,7 @@ try {
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://halurea1.firebaseio.com"
+  databaseURL: "https://halurea1-default-rtdb.asia-southeast1.firebasedatabase.app/"
 });
 
 const db = admin.database();
