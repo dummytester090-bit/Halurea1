@@ -1,13 +1,10 @@
-const express = require('express');
-const cors = require('cors');
-const { randomBytes } = require('crypto');
-const admin = require('firebase-admin');
+// server.js
+import express from 'express';
+import cors from 'cors';
+import { randomBytes } from 'crypto';
+import admin from 'firebase-admin';
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// 🔥 Initialize Firebase Admin from ENV
+// 🚨 Use service account from environment variable
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
@@ -17,42 +14,49 @@ admin.initializeApp({
 
 const db = admin.database();
 
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Helper: default key types
+const KEY_TYPES = {
+    basic: { validityMinutes: 10, maxUses: 1 },
+    standard: { validityMinutes: 30, maxUses: 2 },
+    good: { validityMinutes: 60, maxUses: 8 } // updated from 5 → 8
+};
+
 // ✅ Generate Key
 app.post('/generatekey', async (req, res) => {
-    const { validityMinutes, maxUses } = req.body;
-
-    if (!validityMinutes || !maxUses) {
-        return res.json({ success: false, error: 'Invalid request' });
-    }
-
-    const key = randomBytes(8).toString('hex');
-    const expiry = Date.now() + (validityMinutes * 60 * 1000);
-
     try {
-        const ref = db.ref('keys').push();
-        await ref.set({
+        const { keyType } = req.body;
+        if (!KEY_TYPES[keyType]) return res.json({ success: false, error: 'Invalid key type' });
+
+        const { validityMinutes, maxUses } = KEY_TYPES[keyType];
+        const key = randomBytes(8).toString('hex').toUpperCase();
+        const expiry = Date.now() + validityMinutes * 60 * 1000;
+
+        await db.ref('keys').push({
             key,
+            keyType,
             expiry,
             maxUses,
             used: 0,
             createdAt: Date.now()
         });
 
-        res.json({ success: true, key });
+        res.json({ success: true, key, validityMinutes, maxUses });
     } catch (err) {
+        console.error(err);
         res.json({ success: false, error: 'Database error' });
     }
 });
 
-// ✅ Validate / Use Key
+// ✅ Use / Redeem Key
 app.post('/usekey', async (req, res) => {
-    const { key } = req.body;
-
-    if (!key) {
-        return res.json({ success: false, error: 'No key provided' });
-    }
-
     try {
+        const { key } = req.body;
+        if (!key) return res.json({ success: false, error: 'No key provided' });
+
         const snapshot = await db.ref('keys').once('value');
         let found = null;
         let refKey = null;
@@ -65,48 +69,51 @@ app.post('/usekey', async (req, res) => {
             }
         });
 
-        if (!found) {
-            return res.json({ success: false, error: 'Invalid key' });
-        }
+        if (!found) return res.json({ success: false, error: 'Invalid key' });
 
-        // ❌ Expired
+        // Expired key
         if (Date.now() > found.expiry) {
             await refKey.remove();
             return res.json({ success: false, error: 'Key expired' });
         }
 
-        // ❌ Used up
+        // Used up
         if (found.used >= found.maxUses) {
             await refKey.remove();
             return res.json({ success: false, error: 'Key fully used' });
         }
 
-        // ✅ Increase usage
-        await refKey.update({
-            used: found.used + 1
+        // ✅ Increment usage
+        await refKey.update({ used: found.used + 1 });
+
+        res.json({
+            success: true,
+            keyType: found.keyType,
+            remainingUses: found.maxUses - (found.used + 1),
+            expiry: found.expiry
         });
-
-        res.json({ success: true });
-
     } catch (err) {
+        console.error(err);
         res.json({ success: false, error: 'Server error' });
     }
 });
 
-// ✅ Auto cleanup expired keys
+// ✅ Auto cleanup expired or fully used keys every 60s
 setInterval(async () => {
-    const snapshot = await db.ref('keys').once('value');
+    try {
+        const snapshot = await db.ref('keys').once('value');
+        snapshot.forEach(child => {
+            const data = child.val();
+            if (Date.now() > data.expiry || data.used >= data.maxUses) {
+                child.ref.remove();
+            }
+        });
+        console.log("Cleanup done");
+    } catch (err) {
+        console.error("Cleanup error:", err);
+    }
+}, 60000);
 
-    snapshot.forEach(child => {
-        const data = child.val();
-
-        if (Date.now() > data.expiry || data.used >= data.maxUses) {
-            child.ref.remove();
-        }
-    });
-
-    console.log("Cleanup done");
-}, 60000); // every 60 seconds
-
+// ✅ Ready
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Halurea Key Backend running on port ${PORT}`));
