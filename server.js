@@ -7,15 +7,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔥 FIX: Properly parse ENV + fix private key formatting
+// 🔥 ENV FIX
 let serviceAccount;
 
 try {
   serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-
-  // 🔥 CRITICAL FIX: convert \n → real new lines
   serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-
 } catch (err) {
   console.error("🔥 ENV ERROR:", err);
   process.exit(1);
@@ -28,7 +25,7 @@ admin.initializeApp({
 
 const db = admin.database();
 
-// Helper: Convert timestamp to human-readable format like "Apr 4, 2026 8:00:00 PM"
+// 🔥 Helper (display only)
 function formatReadableTime(date) {
   return date.toLocaleString('en-US', {
     month: 'short',
@@ -41,14 +38,7 @@ function formatReadableTime(date) {
   });
 }
 
-// Key types (unused but kept as requested)
-const KEY_TYPES = {
-  basic: { validityMinutes: 10, maxUses: 1 },
-  standard: { validityMinutes: 30, maxUses: 2 },
-  good: { validityMinutes: 60, maxUses: 8 }
-};
-
-// ✅ Generate Key - stores data under keys/{key} with human-readable timestamps
+// ✅ Generate Key
 app.post('/generatekey', async (req, res) => {
   const { validityMinutes, maxUses } = req.body;
 
@@ -57,17 +47,20 @@ app.post('/generatekey', async (req, res) => {
   }
 
   const key = randomBytes(8).toString('hex');
-  const now = new Date();
-  const expiryDate = new Date(now.getTime() + validityMinutes * 60 * 1000);
 
-  const createdAtReadable = formatReadableTime(now);
-  const expiryReadable = formatReadableTime(expiryDate);
+  const now = Date.now(); // ✅ RAW
+  const expiry = now + (validityMinutes * 60 * 1000); // ✅ RAW
 
   try {
-    const ref = db.ref('keys/' + key);
-    await ref.set({
-      createdAt: createdAtReadable,
-      expiry: expiryReadable,
+    await db.ref('keys/' + key).set({
+      // ✅ RAW (IMPORTANT FOR LOGIC + DISCORD)
+      createdRaw: now,
+      expiryRaw: expiry,
+
+      // ✅ READABLE (FOR YOU ONLY)
+      createdAt: formatReadableTime(new Date(now)),
+      expiry: formatReadableTime(new Date(expiry)),
+
       maxUses,
       used: 0
     });
@@ -80,7 +73,7 @@ app.post('/generatekey', async (req, res) => {
   }
 });
 
-// ✅ Use Key - direct access using key as Firebase path
+// ✅ Use Key
 app.post('/usekey', async (req, res) => {
   const { key } = req.body;
 
@@ -95,29 +88,35 @@ app.post('/usekey', async (req, res) => {
     }
 
     const data = snapshot.val();
+    const now = Date.now();
 
-    // Check expiry using readable string (parseable by Date constructor)
-    if (new Date(data.expiry) < new Date()) {
+    // ❌ Expired
+    if (now > data.expiryRaw) {
       await ref.remove();
       return res.json({ success: false, error: 'Key expired' });
     }
 
+    // ❌ Used up
     if (data.used >= data.maxUses) {
       await ref.remove();
       return res.json({ success: false, error: 'Key fully used' });
     }
 
-    // Increment usage
-    await ref.update({ used: data.used + 1 });
+    // ✅ Increase usage
+    const newUsed = data.used + 1;
+    await ref.update({ used: newUsed });
 
-    const remainingUses = data.maxUses - (data.used + 1);
+    const remainingUses = data.maxUses - newUsed;
+
     res.json({
       success: true,
-      remainingUses: remainingUses
+      remainingUses,
+      createdRaw: data.createdRaw,
+      expiryRaw: data.expiryRaw
     });
 
-    // Auto-remove if fully used after this increment
-    if (data.used + 1 >= data.maxUses) {
+    // Auto delete if finished
+    if (newUsed >= data.maxUses) {
       await ref.remove();
     }
 
@@ -127,23 +126,23 @@ app.post('/usekey', async (req, res) => {
   }
 });
 
-// ✅ Auto cleanup - removes expired or fully used keys
+// ✅ Cleanup
 setInterval(async () => {
   try {
     const snapshot = await db.ref('keys').once('value');
-    const now = new Date();
+    const now = Date.now();
+
     snapshot.forEach(child => {
       const data = child.val();
       if (!data) return;
 
-      const isExpired = new Date(data.expiry) < now;
-      const isFullyUsed = data.used >= data.maxUses;
-
-      if (isExpired || isFullyUsed) {
+      if (now > data.expiryRaw || data.used >= data.maxUses) {
         child.ref.remove();
       }
     });
+
     console.log("🧹 Cleanup done");
+
   } catch (err) {
     console.error("Cleanup error:", err);
   }
