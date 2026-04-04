@@ -28,6 +28,19 @@ admin.initializeApp({
 
 const db = admin.database();
 
+// Helper: Convert timestamp to human-readable format like "Apr 4, 2026 8:00:00 PM"
+function formatReadableTime(date) {
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true
+  });
+}
+
 // Key types (unused but kept as requested)
 const KEY_TYPES = {
   basic: { validityMinutes: 10, maxUses: 1 },
@@ -44,16 +57,19 @@ app.post('/generatekey', async (req, res) => {
   }
 
   const key = randomBytes(8).toString('hex');
-  const expiryISO = new Date(Date.now() + validityMinutes * 60 * 1000).toISOString();
-  const createdAtISO = new Date().toISOString();
+  const now = new Date();
+  const expiryDate = new Date(now.getTime() + validityMinutes * 60 * 1000);
+
+  const createdAtReadable = formatReadableTime(now);
+  const expiryReadable = formatReadableTime(expiryDate);
 
   try {
     const ref = db.ref('keys/' + key);
     await ref.set({
-      expiry: expiryISO,
+      createdAt: createdAtReadable,
+      expiry: expiryReadable,
       maxUses,
-      used: 0,
-      createdAt: createdAtISO
+      used: 0
     });
 
     res.json({ success: true, key });
@@ -80,7 +96,7 @@ app.post('/usekey', async (req, res) => {
 
     const data = snapshot.val();
 
-    // Check expiry using ISO string comparison
+    // Check expiry using readable string (parseable by Date constructor)
     if (new Date(data.expiry) < new Date()) {
       await ref.remove();
       return res.json({ success: false, error: 'Key expired' });
@@ -115,11 +131,12 @@ app.post('/usekey', async (req, res) => {
 setInterval(async () => {
   try {
     const snapshot = await db.ref('keys').once('value');
+    const now = new Date();
     snapshot.forEach(child => {
       const data = child.val();
       if (!data) return;
 
-      const isExpired = new Date(data.expiry) < new Date();
+      const isExpired = new Date(data.expiry) < now;
       const isFullyUsed = data.used >= data.maxUses;
 
       if (isExpired || isFullyUsed) {
