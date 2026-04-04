@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const cors = require('cors');
 const { randomBytes } = require('crypto');
@@ -7,33 +8,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔥 FIX: Properly parse ENV + fix private key formatting
-let serviceAccount;
-
-try {
-  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-
-  // 🔥 CRITICAL FIX: convert \n → real new lines
-  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-
-} catch (err) {
-  console.error("🔥 ENV ERROR:", err);
-  process.exit(1);
-}
+// 🔥 Initialize Firebase Admin from ENV
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://halurea1-default-rtdb.asia-southeast1.firebasedatabase.app/"
+  databaseURL: "https://halurea1.firebaseio.com"
 });
 
 const db = admin.database();
-
-// Key types
-const KEY_TYPES = {
-  basic: { validityMinutes: 10, maxUses: 1 },
-  standard: { validityMinutes: 30, maxUses: 2 },
-  good: { validityMinutes: 60, maxUses: 8 }
-};
 
 // ✅ Generate Key
 app.post('/generatekey', async (req, res) => {
@@ -43,91 +26,81 @@ app.post('/generatekey', async (req, res) => {
     return res.json({ success: false, error: 'Invalid request' });
   }
 
-  const key = randomBytes(8).toString('hex');
-  const expiry = Date.now() + validityMinutes * 60 * 1000;
+  const key = randomBytes(8).toString('hex'); // 16-char hex
+  const now = new Date();
+  const expiryDate = new Date(now.getTime() + validityMinutes * 60 * 1000);
 
   try {
-    const ref = db.ref('keys').push();
-    await ref.set({
-      key,
-      expiry,
+    await db.ref('keys/' + key).set({
       maxUses,
       used: 0,
-      createdAt: Date.now()
+      created: now.toLocaleString(),    // human-readable
+      expiry: expiryDate.toLocaleString() // human-readable
     });
 
     res.json({ success: true, key });
 
   } catch (err) {
-    console.error("DB ERROR:", err);
+    console.error(err);
     res.json({ success: false, error: 'Database error' });
   }
 });
 
-// ✅ Use Key
+// ✅ Validate / Use Key
 app.post('/usekey', async (req, res) => {
   const { key } = req.body;
 
   if (!key) return res.json({ success: false, error: 'No key provided' });
 
   try {
-    const snapshot = await db.ref('keys').once('value');
-    let found = null;
-    let refKey = null;
-
-    snapshot.forEach(child => {
-      const data = child.val();
-      if (data.key === key) {
-        found = data;
-        refKey = child.ref;
-      }
-    });
+    const ref = db.ref('keys/' + key);
+    const snapshot = await ref.once('value');
+    const found = snapshot.val();
 
     if (!found) return res.json({ success: false, error: 'Invalid key' });
 
-    if (Date.now() > found.expiry) {
-      await refKey.remove();
+    const now = new Date();
+    const expiryDate = new Date(found.expiry);
+
+    // ❌ Expired
+    if (now > expiryDate) {
+      await ref.remove();
       return res.json({ success: false, error: 'Key expired' });
     }
 
+    // ❌ Used up
     if (found.used >= found.maxUses) {
-      await refKey.remove();
+      await ref.remove();
       return res.json({ success: false, error: 'Key fully used' });
     }
 
-    await refKey.update({ used: found.used + 1 });
+    // ✅ Increase usage
+    await ref.update({ used: found.used + 1 });
 
-    res.json({
-      success: true,
-      remainingUses: found.maxUses - (found.used + 1)
-    });
-
-    if (found.used + 1 >= found.maxUses) {
-      await refKey.remove();
-    }
+    res.json({ success: true });
 
   } catch (err) {
-    console.error("Server error:", err);
+    console.error(err);
     res.json({ success: false, error: 'Server error' });
   }
 });
 
-// ✅ Auto cleanup
+// ✅ Auto cleanup expired/used keys
 setInterval(async () => {
-  try {
-    const snapshot = await db.ref('keys').once('value');
-    snapshot.forEach(child => {
-      const data = child.val();
-      if (!data) return;
-      if (Date.now() > data.expiry || data.used >= data.maxUses) {
-        child.ref.remove();
-      }
-    });
-    console.log("🧹 Cleanup done");
-  } catch (err) {
-    console.error("Cleanup error:", err);
-  }
-}, 60000);
+  const snapshot = await db.ref('keys').once('value');
+
+  snapshot.forEach(child => {
+    const data = child.val();
+    const now = new Date();
+    const expiryDate = new Date(data.expiry);
+
+    if (now > expiryDate || data.used >= data.maxUses) {
+      child.ref.remove();
+    }
+  });
+
+  console.log("Cleanup done");
+}, 60000); // every 60 seconds
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Backend running on port ${PORT}`));
